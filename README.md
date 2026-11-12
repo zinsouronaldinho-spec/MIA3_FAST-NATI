@@ -494,3 +494,392 @@ Etudiant "1" *-- "0..*" Note : possede
 Note "*" --> "1" Matiere : concerne
 
 @enduml
+POUR LE CODE DE TP2 EN C++
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+// ================= CLASSE ETUDIANT =================
+class Etudiant {
+private:
+    int matricule;
+    string nom;
+
+public:
+    Etudiant(int m, string n) : matricule(m), nom(n) {}
+
+    int getMatricule() const { return matricule; }
+    string getNom() const { return nom; }
+};
+
+// ================= CLASSE MATIERE =================
+class Matiere {
+private:
+    int id;
+    string nom;
+
+public:
+    Matiere(int i, string n) : id(i), nom(n) {}
+
+    int getId() const { return id; }
+    string getNom() const { return nom; }
+};
+
+// ================= CLASSE ENSEIGNANT =================
+class Enseignant {
+private:
+    int id;
+    string nom;
+
+public:
+    Enseignant(int i, string n) : id(i), nom(n) {}
+
+    int getId() const { return id; }
+    string getNom() const { return nom; }
+};
+
+// ================= CLASSE SALLE =================
+class Salle {
+private:
+    int id;
+    string nom;
+    int capacite;
+
+public:
+    Salle(int i, string n, int c)
+        : id(i), nom(n), capacite(c) {}
+
+    int getId() const { return id; }
+    string getNom() const { return nom; }
+    int getCapacite() const { return capacite; }
+};
+
+// ================= CLASSE GROUPE TD =================
+class GroupeTD {
+private:
+    int id;
+    string nom;
+    vector<Etudiant*> etudiants;
+
+public:
+    GroupeTD(int i, string n) : id(i), nom(n) {}
+
+    void ajouterEtudiant(Etudiant* e) {
+        if (e && find(etudiants.begin(), etudiants.end(), e)
+                    == etudiants.end()) {
+            etudiants.push_back(e);
+        }
+    }
+
+    int getId() const { return id; }
+    string getNom() const { return nom; }
+
+    const vector<Etudiant*>& getEtudiants() const {
+        return etudiants;
+    }
+};
+
+// ================= CLASSE PRESENCE =================
+class Presence {
+private:
+    int matricule;
+    bool present;
+
+public:
+    Presence(int m, bool p) : matricule(m), present(p) {}
+
+    int getMatricule() const { return matricule; }
+    bool estPresent() const { return present; }
+};
+
+// ================= CLASSE SEANCE TD =================
+class SeanceTD {
+private:
+    int id;
+    Matiere* matiere;
+    GroupeTD* groupe;
+    Enseignant* enseignant;
+    Salle* salle;
+
+    string date;
+    string debut;
+    string fin;
+
+    vector<Presence> presences;
+
+public:
+    SeanceTD(int i, Matiere* m, GroupeTD* g,
+             Enseignant* e, Salle* s,
+             string d, string h1, string h2)
+        : id(i), matiere(m), groupe(g),
+          enseignant(e), salle(s),
+          date(d), debut(h1), fin(h2) {}
+
+    int getId() const { return id; }
+    Matiere* getMatiere() const { return matiere; }
+    GroupeTD* getGroupe() const { return groupe; }
+    Enseignant* getEnseignant() const { return enseignant; }
+    Salle* getSalle() const { return salle; }
+
+    string getDate() const { return date; }
+    string getDebut() const { return debut; }
+    string getFin() const { return fin; }
+
+    void ajouterPresence(int matricule, bool present) {
+        for (auto& p : presences) {
+            if (p.getMatricule() == matricule) {
+                p = Presence(matricule, present);
+                return;
+            }
+        }
+
+        presences.emplace_back(matricule, present);
+    }
+
+    const vector<Presence>& getPresences() const {
+        return presences;
+    }
+};
+
+// ================= CLASSE PLATEFORME =================
+class PlateformeTD {
+private:
+    vector<Matiere> matieres;
+    vector<Etudiant> etudiants;
+    vector<Enseignant> enseignants;
+    vector<Salle> salles;
+    vector<GroupeTD> groupes;
+    vector<SeanceTD> seances;
+
+public:
+    void ajouterMatiere(int id, string nom) {
+        matieres.emplace_back(id, nom);
+    }
+
+    void ajouterEtudiant(int id, string nom) {
+        etudiants.emplace_back(id, nom);
+    }
+
+    void ajouterEnseignant(int id, string nom) {
+        enseignants.emplace_back(id, nom);
+    }
+
+    void ajouterSalle(int id, string nom, int capacite) {
+        salles.emplace_back(id, nom, capacite);
+    }
+
+    void creerGroupe(int id, string nom) {
+        groupes.emplace_back(id, nom);
+    }
+
+    bool affecterEtudiant(int matricule, int idGroupe) {
+        for (auto& e : etudiants) {
+            if (e.getMatricule() == matricule) {
+                for (auto& g : groupes) {
+                    if (g.getId() == idGroupe) {
+                        g.ajouterEtudiant(&e);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    bool programmerSeance(int id, int idMatiere,
+                          int idGroupe, int idEnseignant,
+                          int idSalle, string date,
+                          string debut, string fin) {
+
+        Matiere* m = nullptr;
+        GroupeTD* g = nullptr;
+        Enseignant* e = nullptr;
+        Salle* s = nullptr;
+
+        for (auto& x : matieres)
+            if (x.getId() == idMatiere) m = &x;
+
+        for (auto& x : groupes)
+            if (x.getId() == idGroupe) g = &x;
+
+        for (auto& x : enseignants)
+            if (x.getId() == idEnseignant) e = &x;
+
+        for (auto& x : salles)
+            if (x.getId() == idSalle) s = &x;
+
+        if (!m || !g || !e || !s || debut >= fin) {
+            cout << "Informations invalides.\n";
+            return false;
+        }
+
+        if (g->getEtudiants().size() >
+            static_cast<size_t>(s->getCapacite())) {
+            cout << "Capacite de salle insuffisante.\n";
+            return false;
+        }
+
+        for (const auto& se : seances) {
+            bool memeDate = se.getDate() == date;
+            bool chevauchement =
+                debut < se.getFin() && se.getDebut() < fin;
+
+            if (memeDate && chevauchement) {
+                if (se.getSalle()->getId() == idSalle) {
+                    cout << "Conflit de salle !\n";
+                    return false;
+                }
+
+                if (se.getEnseignant()->getId() == idEnseignant) {
+                    cout << "Conflit d'enseignant !\n";
+                    return false;
+                }
+
+                if (se.getGroupe()->getId() == idGroupe) {
+                    cout << "Groupe deja occupe !\n";
+                    return false;
+                }
+            }
+        }
+
+        seances.emplace_back(id, m, g, e, s,
+                             date, debut, fin);
+
+        cout << "Seance programmee avec succes !\n";
+        return true;
+    }
+
+    bool enregistrerPresence(int idSeance,
+                             int matricule, bool present) {
+        for (auto& s : seances) {
+            if (s.getId() == idSeance) {
+                for (auto* e : s.getGroupe()->getEtudiants()) {
+                    if (e->getMatricule() == matricule) {
+                        s.ajouterPresence(matricule, present);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    void afficherCalendrier() const {
+        cout << "\n===== CALENDRIER DES TD =====\n";
+
+        for (const auto& s : seances) {
+            cout << s.getDate() << " | "
+                 << s.getDebut() << " - " << s.getFin()
+                 << " | " << s.getMatiere()->getNom()
+                 << " | " << s.getGroupe()->getNom()
+                 << " | " << s.getSalle()->getNom()
+                 << " | " << s.getEnseignant()->getNom()
+                 << endl;
+        }
+    }
+
+    void afficherBilan() const {
+        cout << "\n===== BILAN DES PRESENCES =====\n";
+
+        for (const auto& s : seances) {
+            int presents = 0;
+            int absents = 0;
+
+            for (const auto& p : s.getPresences()) {
+                if (p.estPresent())
+                    presents++;
+                else
+                    absents++;
+            }
+
+            cout << s.getMatiere()->getNom()
+                 << " - " << s.getGroupe()->getNom()
+                 << "\nPresents : " << presents
+                 << "\nAbsents : " << absents << endl;
+        }
+    }
+};
+
+// ================= PROGRAMME PRINCIPAL =================
+int main() {
+    PlateformeTD plateforme;
+
+    plateforme.ajouterMatiere(1, "Mathematiques");
+    plateforme.ajouterMatiere(2, "Informatique");
+
+    plateforme.ajouterEtudiant(101, "Amina");
+    plateforme.ajouterEtudiant(102, "Paul");
+    plateforme.ajouterEtudiant(103, "Grace");
+
+    plateforme.ajouterEnseignant(1, "M. Kossi");
+    plateforme.ajouterEnseignant(2, "Mme Dossou");
+
+    plateforme.ajouterSalle(1, "Salle A12", 40);
+    plateforme.ajouterSalle(2, "Salle B05", 25);
+
+    plateforme.creerGroupe(1, "MI1");
+    plateforme.creerGroupe(2, "MI2");
+
+    plateforme.affecterEtudiant(101, 1);
+    plateforme.affecterEtudiant(102, 1);
+    plateforme.affecterEtudiant(103, 2);
+
+    plateforme.programmerSeance(
+        1, 1, 1, 1, 1,
+        "2026-11-16", "08:00", "10:00"
+    );
+
+    plateforme.programmerSeance(
+        2, 2, 2, 2, 2,
+        "2026-11-16", "10:00", "12:00"
+    );
+
+    plateforme.enregistrerPresence(1, 101, true);
+    plateforme.enregistrerPresence(1, 102, false);
+    plateforme.enregistrerPresence(2, 103, true);
+
+    plateforme.afficherCalendrier();
+    plateforme.afficherBilan();
+
+    return 0;
+}
+POUR LE CODE DE DIAGRAMME EN UML
+
+@startuml
+left to right direction
+
+actor Administrateur
+actor Enseignant
+actor Etudiant
+
+rectangle "Plateforme de gestion des TD" {
+
+ usecase "Enregistrer les matieres" as UC1
+ usecase "Creer les groupes TD" as UC2
+ usecase "Affecter les etudiants" as UC3
+ usecase "Programmer une seance" as UC4
+ usecase "Verifier les conflits" as UC5
+ usecase "Consulter le calendrier" as UC6
+ usecase "Enregistrer les presences" as UC7
+ usecase "Produire le bilan" as UC8
+
+}
+
+Administrateur --> UC1
+Administrateur --> UC2
+Administrateur --> UC3
+Administrateur --> UC4
+Administrateur --> UC8
+
+Enseignant --> UC4
+Enseignant --> UC6
+Enseignant --> UC7
+
+Etudiant --> UC6
+
+UC4 .> UC5 : <<include>>
+
+@enduml
