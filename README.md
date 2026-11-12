@@ -1,4 +1,4 @@
-# MIA3_FAST-NATI
+# MIA3_FAST-NATI(TP2 et Exo2)
 Pour exo 2 , voilà son code d'implantation en c++
 
 #include <iostream>
