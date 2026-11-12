@@ -434,3 +434,63 @@ int main() {
 
     return 0;
 }
+POUR L'EXO 2 ,LE CODE DE UML
+
+@startuml
+title Gestion des étudiants et des résultats académiques
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+class Etudiant {
+  - matricule : String
+  - nom : String
+  - niveau : String
+  - filiere : Filiere*
+  - notes : vector<Note>
+  + ajouterNote(note : Note) : void
+  + calculerMoyenne() : double
+  + afficherReleve() : void
+  + genererGraphique() : void
+}
+
+class Filiere {
+  - code : String
+  - nom : String
+  - ues : vector<UE>
+  + ajouterUE(ue : UE) : void
+}
+
+class UE {
+  - code : String
+  - nom : String
+  - credit : int
+  - matieres : vector<Matiere>
+  + ajouterMatiere(m : Matiere) : void
+  + calculerMoyenneUE() : double
+  + estValidee() : bool
+}
+
+class Matiere {
+  - code : String
+  - nom : String
+  - coefficient : double
+  + getCode() : String
+  + getNom() : String
+  + getCoefficient() : double
+}
+
+class Note {
+  - codeMatiere : String
+  - valeur : double
+  + getCodeMatiere() : String
+  + getValeur() : double
+}
+
+Filiere "1" *-- "1..*" UE : contient
+UE "1" *-- "1..*" Matiere : compose
+Filiere "1" -- "0..*" Etudiant : accueille
+Etudiant "1" *-- "0..*" Note : possede
+Note "*" --> "1" Matiere : concerne
+
+@enduml
